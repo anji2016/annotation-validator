@@ -28,5 +28,9 @@ public class UserValidator extends BaseValidator<UserDto, ValidUser> {
     public boolean isErrorPassword(String password) {
         return password != null && !password.contains("pass");
     }
+    
+    public boolean isValidId(Long id) {
+        return id > 10;
+    }
 }
 

@@ -32,6 +32,12 @@ public class UserDto {
         @Validate(method = "isErrorPassword", message = "Password should contain 'pass'", type = Type.WARN),
     })
 	private String password;
+	
+	@NotNull(message = "Id cannot be null")
+	@Validates({
+        @Validate(method = "isValidId", message = "Id should be greater than 10", type = Type.ERROR),
+    })
+	private Long id;
 
 	public String getName() {
 		return name;
@@ -44,5 +50,9 @@ public class UserDto {
 	public String getPassword() {
 		return password;
 	}
-	
+
+	public Long getId() {
+		return id;
+	}
+
 }
