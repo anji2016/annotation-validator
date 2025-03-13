@@ -22,17 +22,11 @@ public abstract class BaseValidator<T, A extends Annotation> implements Constrai
             List<Validate> annotations = getValidationAnnotations(field);
             if (annotations.isEmpty()) continue;
 
-            field.setAccessible(true);
-            try {
-                Object value = field.get(object);
-                for (Validate annotation : annotations) {
-                    if (!isValidField(annotation, field.getType(), value)) {
-                        hasErrors = true;
-                        addValidationError(context, field.getName(), annotation, value);
-                    }
+            for (Validate annotation : annotations) {
+                if (!isValidField(annotation, object)) {
+                    hasErrors = true;
+                    addValidationError(context, field.getName(), annotation, object);
                 }
-            } catch (Exception e) {
-                throw new RuntimeException("Error processing validation rules for field: " + field.getName(), e);
             }
         }
 
@@ -50,25 +44,35 @@ public abstract class BaseValidator<T, A extends Annotation> implements Constrai
         return annotations;
     }
 
-    private boolean isValidField(Validate annotation, Class<?> fieldType, Object value) {
+    private boolean isValidField(Validate annotation, T object) {
         try {
-            Method method = this.getClass().getDeclaredMethod(annotation.method(), fieldType);
+            Method method = this.getClass().getDeclaredMethod(annotation.method(), object.getClass());
             method.setAccessible(true);
-            return (boolean) method.invoke(this, value);
+            return (boolean) method.invoke(this, object);
         } catch (Exception e) {
             throw new RuntimeException("Error invoking validation method: " + annotation.method(), e);
         }
     }
 
-    private void addValidationError(ConstraintValidatorContext context, String fieldName, Validate annotation, Object fieldValue) {
+    private void addValidationError(ConstraintValidatorContext context, String fieldName, Validate annotation, T object) {
         context.disableDefaultConstraintViolation();
         
-        // Format the message dynamically with the field value
-        String formattedMessage = String.format(annotation.message(), fieldValue);
+        // Format the message dynamically with the field value if needed
+        String formattedMessage = String.format(annotation.message(), getFieldValue(object, fieldName));
 
         context.buildConstraintViolationWithTemplate(formattedMessage + "|" + annotation.type())
                .addPropertyNode(fieldName)
                .addConstraintViolation();
+    }
+
+    private Object getFieldValue(T object, String fieldName) {
+        try {
+            Field field = object.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(object);
+        } catch (Exception e) {
+            return "Unknown"; // Fallback in case of error
+        }
     }
 }
 

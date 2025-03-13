@@ -35,7 +35,7 @@ public class UserDto {
 	
 	@NotNull(message = "Id cannot be null")
 	@Validates({
-        @Validate(method = "isValidId", message = "Id should be greater than 10", type = Type.ERROR),
+        @Validate(method = "isValidId", message = "%d Id should be greater than 10", type = Type.ERROR),
     })
 	private Long id;
 

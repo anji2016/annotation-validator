@@ -5,32 +5,32 @@ import com.annotation.validator.dto.UserDto;
 
 public class UserValidator extends BaseValidator<UserDto, ValidUser> {
 
-    public boolean isValidName(String name) {
-        return name != null && name.matches("^[a-zA-Z ]+$");
+    public boolean isValidName(UserDto dto) {
+        return dto.getName() != null && dto.getName().matches("^[a-zA-Z ]+$");
     }
 
-    public boolean isErrName(String name) {
-        return name != null && !name.toLowerCase().contains("priya");
+    public boolean isErrName(UserDto dto) {
+        return dto.getName() != null && !dto.getName().toLowerCase().contains("priya");
     }
 
-    public boolean isValidEmail(String email) {
-        return email != null && email.matches("^[\\w.-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}$");
+    public boolean isValidEmail(UserDto dto) {
+        return dto.getEmail() != null && dto.getEmail().matches("^[\\w.-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}$");
     }
 
-    public boolean isErrEmail(String email) {
-        return email != null && !email.equalsIgnoreCase("error@example.com");
+    public boolean isErrEmail(UserDto dto) {
+        return dto.getEmail() != null && !dto.getEmail().equalsIgnoreCase("error@example.com");
     }
 
-    public boolean isValidPassword(String password) {
-        return password != null && password.matches("^(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{6,}$");
+    public boolean isValidPassword(UserDto dto) {
+        return dto.getPassword() != null && dto.getPassword().matches("^(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{6,}$");
     }
 
-    public boolean isErrorPassword(String password) {
-        return password != null && !password.contains("pass");
+    public boolean isErrorPassword(UserDto dto) {
+        return dto.getPassword() != null && !dto.getPassword().contains("pass");
     }
     
-    public boolean isValidId(Long id) {
-        return id > 10;
+    public boolean isValidId(UserDto dto) {
+        return dto.getId() > 10;
     }
 }
 
