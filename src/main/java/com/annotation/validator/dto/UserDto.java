@@ -14,8 +14,8 @@ public class UserDto {
 	@NotBlank(message = "Name is required")
 	@NotNull(message = "Name cannot be null")
 	@Validates({
-        @Validate(method = "isValidName", message = "Name must contain only alphabets and spaces", type = Type.WARN),
-        @Validate(method = "isErrName", message = "Name must not contain 'priya'", type = Type.ERROR)
+        @Validate(method = "isValidName", message = "%s must contain only alphabets and spaces", type = Type.WARN),
+        @Validate(method = "isErrName", message = "%s must not contain 'priya'", type = Type.ERROR)
     })
 	private String name;
 

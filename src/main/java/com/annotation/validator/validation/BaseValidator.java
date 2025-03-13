@@ -28,7 +28,7 @@ public abstract class BaseValidator<T, A extends Annotation> implements Constrai
                 for (Validate annotation : annotations) {
                     if (!isValidField(annotation, field.getType(), value)) {
                         hasErrors = true;
-                        addValidationError(context, field.getName(), annotation);
+                        addValidationError(context, field.getName(), annotation, value);
                     }
                 }
             } catch (Exception e) {
@@ -60,9 +60,13 @@ public abstract class BaseValidator<T, A extends Annotation> implements Constrai
         }
     }
 
-    private void addValidationError(ConstraintValidatorContext context, String fieldName, Validate annotation) {
+    private void addValidationError(ConstraintValidatorContext context, String fieldName, Validate annotation, Object fieldValue) {
         context.disableDefaultConstraintViolation();
-        context.buildConstraintViolationWithTemplate(annotation.message() + "|" + annotation.type())
+        
+        // Format the message dynamically with the field value
+        String formattedMessage = String.format(annotation.message(), fieldValue);
+
+        context.buildConstraintViolationWithTemplate(formattedMessage + "|" + annotation.type())
                .addPropertyNode(fieldName)
                .addConstraintViolation();
     }
