@@ -6,6 +6,10 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
+
 import com.annotation.validator.annotation.Validate;
 import com.annotation.validator.annotation.Validates;
 
@@ -13,6 +17,9 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 public abstract class BaseValidator<T, A extends Annotation> implements ConstraintValidator<A, T> {
+	
+	@Autowired
+    private ApplicationContext applicationContext; // Inject Spring Context
 
     @Override
     public boolean isValid(T object, ConstraintValidatorContext context) {
@@ -47,7 +54,8 @@ public abstract class BaseValidator<T, A extends Annotation> implements Constrai
     private boolean isValidField(Validate annotation, T object) {
         try {
             Class<?> validatorClass = annotation.validatorClass(); // Get the specified validator class
-            Object validatorInstance = validatorClass.getDeclaredConstructor().newInstance();
+            //Object validatorInstance = validatorClass.getDeclaredConstructor().newInstance();
+            Object validatorInstance = createAndAutowireInstance(validatorClass); // Create instance & autowire dependencies
             
             Method method = validatorClass.getDeclaredMethod(annotation.method(), object.getClass());
             method.setAccessible(true);
@@ -77,7 +85,19 @@ public abstract class BaseValidator<T, A extends Annotation> implements Constrai
             return "Unknown"; // Fallback in case of error
         }
     }
+    
+    /**
+     * Creates a new instance of the validator class and autowires dependencies.
+     */
+    private Object createAndAutowireInstance(Class<?> validatorClass) throws Exception {
+        // Create a new instance using reflection
+        Object instance = validatorClass.getDeclaredConstructor().newInstance();
+
+        // Manually inject dependencies using Spring's AutowireCapableBeanFactory
+        AutowireCapableBeanFactory factory = applicationContext.getAutowireCapableBeanFactory();
+        factory.autowireBean(instance);
+        factory.initializeBean(instance, validatorClass.getSimpleName());
+
+        return instance;
+    }
 }
-
-
-
