@@ -46,9 +46,12 @@ public abstract class BaseValidator<T, A extends Annotation> implements Constrai
 
     private boolean isValidField(Validate annotation, T object) {
         try {
-            Method method = this.getClass().getDeclaredMethod(annotation.method(), object.getClass());
+            Class<?> validatorClass = annotation.validatorClass(); // Get the specified validator class
+            Object validatorInstance = validatorClass.getDeclaredConstructor().newInstance();
+            
+            Method method = validatorClass.getDeclaredMethod(annotation.method(), object.getClass());
             method.setAccessible(true);
-            return (boolean) method.invoke(this, object);
+            return (boolean) method.invoke(validatorInstance, object);
         } catch (Exception e) {
             throw new RuntimeException("Error invoking validation method: " + annotation.method(), e);
         }
@@ -56,7 +59,7 @@ public abstract class BaseValidator<T, A extends Annotation> implements Constrai
 
     private void addValidationError(ConstraintValidatorContext context, String fieldName, Validate annotation, T object) {
         context.disableDefaultConstraintViolation();
-        
+
         // Format the message dynamically with the field value if needed
         String formattedMessage = String.format(annotation.message(), getFieldValue(object, fieldName));
 
@@ -75,5 +78,6 @@ public abstract class BaseValidator<T, A extends Annotation> implements Constrai
         }
     }
 }
+
 
 
