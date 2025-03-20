@@ -2,7 +2,7 @@ package com.annotation.validator.validation;
 
 import com.annotation.validator.dto.UserDto;
 
-public class UserValidator extends BaseValidator{
+public class UserValidator {
 
     public boolean isValidName(UserDto dto) {
         return dto.getName() != null && dto.getName().matches("^[a-zA-Z ]+$");

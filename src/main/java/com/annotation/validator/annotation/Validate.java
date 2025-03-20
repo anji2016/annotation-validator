@@ -12,7 +12,7 @@ import com.annotation.validator.enums.Type;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Validate {
-	Class<?> validatorClass() default void.class;  // Specify the validator class
+	Class<?> validatorClass();  // Specify the validator class
     String method();            // The name of the method (retrieved dynamically)
     String message();           // The error message
     Type type() default Type.ERROR;

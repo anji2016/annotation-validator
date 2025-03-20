@@ -16,7 +16,7 @@ import com.annotation.validator.annotation.Validates;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class BaseValidator implements ConstraintValidator<ValidateDTO, Object> {
+public class CoreValidator implements ConstraintValidator<ValidateDTO, Object> {
 
 	@Autowired
 	private ApplicationContext applicationContext; // Inject Spring Context
@@ -54,37 +54,20 @@ public class BaseValidator implements ConstraintValidator<ValidateDTO, Object> {
 
 	private boolean isValidField(Validate annotation, Object object) {
 		try {
-			// Check if validatorClass is specified
-			if (annotation.validatorClass() != void.class) {
-				return invokeExternalValidator(annotation, object);
-			}
-			return invokeInternalValidator(annotation, object);
+			Class<?> validatorClass = annotation.validatorClass();
+
+			// Create and autowire the validator instance
+			Object validatorInstance = createAndAutowireInstance(validatorClass);
+
+			// Get the validation method
+			Method method = validatorClass.getDeclaredMethod(annotation.method(), object.getClass());
+			method.setAccessible(true);
+
+			// Invoke the validation method
+			return (boolean) method.invoke(validatorInstance, object);
 		} catch (Exception e) {
 			throw new RuntimeException("Error invoking validation method: " + annotation.method(), e);
 		}
-	}
-
-	private boolean invokeExternalValidator(Validate annotation, Object object) throws Exception {
-		Class<?> validatorClass = annotation.validatorClass();
-
-		// Create and autowire the validator instance
-		Object validatorInstance = createAndAutowireInstance(validatorClass);
-
-		// Get the validation method
-		Method method = validatorClass.getDeclaredMethod(annotation.method(), object.getClass());
-		method.setAccessible(true);
-
-		// Invoke the validation method
-		return (boolean) method.invoke(validatorInstance, object);
-	}
-
-	private boolean invokeInternalValidator(Validate annotation, Object object) throws Exception {
-		// Use internal validator method
-		Method method = this.getClass().getDeclaredMethod(annotation.method(), object.getClass());
-		method.setAccessible(true);
-
-		// Invoke the validation method
-		return (boolean) method.invoke(this, object);
 	}
 
 	private void addValidationError(ConstraintValidatorContext context, String fieldName, Validate annotation,
