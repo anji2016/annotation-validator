@@ -1,9 +1,8 @@
 package com.annotation.validator.validation;
 
-import com.annotation.validator.annotation.ValidUser;
 import com.annotation.validator.dto.UserDto;
 
-public class UserValidator extends BaseValidator<UserDto, ValidUser> {
+public class UserValidator extends BaseValidator{
 
     public boolean isValidName(UserDto dto) {
         return dto.getName() != null && dto.getName().matches("^[a-zA-Z ]+$");

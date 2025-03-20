@@ -5,12 +5,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.annotation.validator.validation.BaseValidator;
+
+import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
-//@Constraint(validatedBy = UserValidator.class)
+@Constraint(validatedBy = BaseValidator.class)
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidUser {
+public @interface TriggerAnnotation {
 	String message() default "Invalid user data";
 
     Class<?>[] groups() default {};
