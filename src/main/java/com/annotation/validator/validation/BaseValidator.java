@@ -9,14 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
-import com.annotation.validator.annotation.TriggerAnnotation;
 import com.annotation.validator.annotation.Validate;
+import com.annotation.validator.annotation.ValidateDTO;
 import com.annotation.validator.annotation.Validates;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class BaseValidator implements ConstraintValidator<TriggerAnnotation, Object> {
+public class BaseValidator implements ConstraintValidator<ValidateDTO, Object> {
 
 	@Autowired
 	private ApplicationContext applicationContext; // Inject Spring Context

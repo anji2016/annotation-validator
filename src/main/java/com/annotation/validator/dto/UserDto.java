@@ -1,7 +1,7 @@
 package com.annotation.validator.dto;
 
-import com.annotation.validator.annotation.TriggerAnnotation;
 import com.annotation.validator.annotation.Validate;
+import com.annotation.validator.annotation.ValidateDTO;
 import com.annotation.validator.enums.Type;
 import com.annotation.validator.validation.GlobalValidator;
 import com.annotation.validator.validation.UserValidator;
@@ -9,7 +9,7 @@ import com.annotation.validator.validation.UserValidator;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-@TriggerAnnotation
+@ValidateDTO
 public class UserDto {
 	
 	@NotBlank(message = "Name is required")

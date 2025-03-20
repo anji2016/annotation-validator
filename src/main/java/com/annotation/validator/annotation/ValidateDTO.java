@@ -13,7 +13,7 @@ import jakarta.validation.Payload;
 @Constraint(validatedBy = BaseValidator.class)
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface TriggerAnnotation {
+public @interface ValidateDTO {
 	String message() default "Invalid user data";
 
     Class<?>[] groups() default {};
