@@ -21,16 +21,9 @@ public class UserValidator extends BaseValidator<UserDto, ValidUser> {
         return dto.getEmail() != null && !dto.getEmail().equalsIgnoreCase("error@example.com");
     }
 
-    public boolean isValidPassword(UserDto dto) {
-        return dto.getPassword() != null && dto.getPassword().matches("^(?=.*[A-Z])(?=.*\\d)(?=.*[@#$%^&+=!]).{6,}$");
-    }
-
     public boolean isErrorPassword(UserDto dto) {
         return dto.getPassword() != null && !dto.getPassword().contains("pass");
     }
     
-    public boolean isValidId(UserDto dto) {
-        return dto.getId() > 10;
-    }
 }
 
