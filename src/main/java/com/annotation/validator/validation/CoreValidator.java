@@ -60,6 +60,9 @@ public class CoreValidator implements ConstraintValidator<ValidateDTO, Object> {
             // Get the field value
             field.setAccessible(true);
             Object fieldValue = field.get(object);
+            
+            if(fieldValue == null)
+            	return true;
 
             // Find the correct method
             Method validationMethod = findValidationMethod(validatorClass, annotation.method(), object, fieldValue);
@@ -122,4 +125,3 @@ public class CoreValidator implements ConstraintValidator<ValidateDTO, Object> {
         return instance;
     }
 }
-

@@ -6,6 +6,7 @@ import com.annotation.validator.enums.Type;
 import com.annotation.validator.validation.GlobalValidator;
 import com.annotation.validator.validation.UserValidator;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -29,6 +30,7 @@ public class UserDto {
 	private String password;
 	
 	@NotNull(message = "Id cannot be null")
+	@Min(value = 1, message = "Value must be greater than or equal to 1")
 	@Validate(validatorClass = GlobalValidator.class, method = "isValidId", message = "%d Id should be greater than 10", type = Type.ERROR)
 	private Long id;
 
