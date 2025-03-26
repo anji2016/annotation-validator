@@ -4,8 +4,8 @@ import com.annotation.validator.dto.UserDto;
 
 public class GlobalValidator {
 
-	public boolean isValidId(UserDto dto) {
-		return dto.getId() > 10;
+	public boolean isValidId(Long id) {
+		return id > 10;
 	}
 	
 	public boolean isValidPassword(UserDto dto) {

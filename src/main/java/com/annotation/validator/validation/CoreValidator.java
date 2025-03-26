@@ -18,91 +18,108 @@ import jakarta.validation.ConstraintValidatorContext;
 
 public class CoreValidator implements ConstraintValidator<ValidateDTO, Object> {
 
-	@Autowired
-	private ApplicationContext applicationContext; // Inject Spring Context
+    @Autowired
+    private ApplicationContext applicationContext; // Inject Spring Context
 
-	@Override
-	public boolean isValid(Object object, ConstraintValidatorContext context) {
-		boolean hasErrors = false;
+    @Override
+    public boolean isValid(Object object, ConstraintValidatorContext context) {
+        boolean hasErrors = false;
 
-		for (Field field : object.getClass().getDeclaredFields()) {
-			List<Validate> annotations = getValidationAnnotations(field);
-			if (annotations.isEmpty())
-				continue;
+        for (Field field : object.getClass().getDeclaredFields()) {
+            List<Validate> annotations = getValidationAnnotations(field);
+            if (annotations.isEmpty())
+                continue;
 
-			for (Validate annotation : annotations) {
-				if (!isValidField(annotation, object)) {
-					hasErrors = true;
-					addValidationError(context, field.getName(), annotation, object);
-				}
-			}
-		}
+            for (Validate annotation : annotations) {
+                if (!isValidField(annotation, object, field)) {
+                    hasErrors = true;
+                    addValidationError(context, field.getName(), annotation, object);
+                }
+            }
+        }
 
-		return !hasErrors;
-	}
+        return !hasErrors;
+    }
 
-	private List<Validate> getValidationAnnotations(Field field) {
-		List<Validate> annotations = new ArrayList<>();
-		if (field.isAnnotationPresent(Validate.class)) {
-			annotations.add(field.getAnnotation(Validate.class));
-		}
-		if (field.isAnnotationPresent(Validates.class)) {
-			annotations.addAll(List.of(field.getAnnotation(Validates.class).value()));
-		}
-		return annotations;
-	}
+    private List<Validate> getValidationAnnotations(Field field) {
+        List<Validate> annotations = new ArrayList<>();
+        if (field.isAnnotationPresent(Validate.class)) {
+            annotations.add(field.getAnnotation(Validate.class));
+        }
+        if (field.isAnnotationPresent(Validates.class)) {
+            annotations.addAll(List.of(field.getAnnotation(Validates.class).value()));
+        }
+        return annotations;
+    }
 
-	private boolean isValidField(Validate annotation, Object object) {
-		try {
-			Class<?> validatorClass = annotation.validatorClass();
+    private boolean isValidField(Validate annotation, Object object, Field field) {
+        try {
+            Class<?> validatorClass = annotation.validatorClass();
+            Object validatorInstance = createAndAutowireInstance(validatorClass);
 
-			// Create and autowire the validator instance
-			Object validatorInstance = createAndAutowireInstance(validatorClass);
+            // Get the field value
+            field.setAccessible(true);
+            Object fieldValue = field.get(object);
 
-			// Get the validation method
-			Method method = validatorClass.getDeclaredMethod(annotation.method(), object.getClass());
-			method.setAccessible(true);
+            // Find the correct method
+            Method validationMethod = findValidationMethod(validatorClass, annotation.method(), object, fieldValue);
 
-			// Invoke the validation method
-			return (boolean) method.invoke(validatorInstance, object);
-		} catch (Exception e) {
-			throw new RuntimeException("Error invoking validation method: " + annotation.method(), e);
-		}
-	}
+            if (validationMethod == null) {
+                throw new NoSuchMethodException("No matching method found: " + annotation.method());
+            }
 
-	private void addValidationError(ConstraintValidatorContext context, String fieldName, Validate annotation,
-			Object object) {
-		context.disableDefaultConstraintViolation();
+            validationMethod.setAccessible(true);
 
-		// Format the message dynamically with the field value if needed
-		String formattedMessage = String.format(annotation.message(), getFieldValue(object, fieldName));
+            // Determine the correct argument (DTO or field value)
+            Object argument = validationMethod.getParameterTypes()[0].isAssignableFrom(object.getClass()) ? object : fieldValue;
 
-		context.buildConstraintViolationWithTemplate(formattedMessage + "|" + annotation.type())
-				.addPropertyNode(fieldName).addConstraintViolation();
-	}
+            return (boolean) validationMethod.invoke(validatorInstance, argument);
+        } catch (Exception e) {
+            throw new RuntimeException("Error invoking validation method: " + annotation.method(), e);
+        }
+    }
 
-	private Object getFieldValue(Object object, String fieldName) {
-		try {
-			Field field = object.getClass().getDeclaredField(fieldName);
-			field.setAccessible(true);
-			return field.get(object);
-		} catch (Exception e) {
-			return "Unknown"; // Fallback in case of error
-		}
-	}
+    private Method findValidationMethod(Class<?> validatorClass, String methodName, Object dto, Object fieldValue) {
+        for (Method method : validatorClass.getDeclaredMethods()) {
+            if (method.getName().equals(methodName) && method.getParameterCount() == 1) {
+                Class<?> paramType = method.getParameterTypes()[0];
+                if (paramType.isAssignableFrom(dto.getClass()) || paramType.isAssignableFrom(fieldValue.getClass())) {
+                    return method;
+                }
+            }
+        }
+        return null;
+    }
 
-	/**
-	 * Creates a new instance of the validator class and autowires dependencies.
-	 */
-	private Object createAndAutowireInstance(Class<?> validatorClass) throws Exception {
-		// Create a new instance using reflection
-		Object instance = validatorClass.getDeclaredConstructor().newInstance();
+    private void addValidationError(ConstraintValidatorContext context, String fieldName, Validate annotation, Object object) {
+        context.disableDefaultConstraintViolation();
 
-		// Manually inject dependencies using Spring's AutowireCapableBeanFactory
-		AutowireCapableBeanFactory factory = applicationContext.getAutowireCapableBeanFactory();
-		factory.autowireBean(instance);
-		factory.initializeBean(instance, validatorClass.getSimpleName());
+        // Format the message dynamically with the field value if needed
+        String formattedMessage = String.format(annotation.message(), getFieldValue(object, fieldName));
 
-		return instance;
-	}
+        context.buildConstraintViolationWithTemplate(formattedMessage + "|" + annotation.type())
+                .addPropertyNode(fieldName).addConstraintViolation();
+    }
+
+    private Object getFieldValue(Object object, String fieldName) {
+        try {
+            Field field = object.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(object);
+        } catch (Exception e) {
+            return "Unknown"; // Fallback in case of error
+        }
+    }
+
+    /**
+     * Creates a new instance of the validator class and autowires dependencies.
+     */
+    private Object createAndAutowireInstance(Class<?> validatorClass) throws Exception {
+        Object instance = validatorClass.getDeclaredConstructor().newInstance();
+        AutowireCapableBeanFactory factory = applicationContext.getAutowireCapableBeanFactory();
+        factory.autowireBean(instance);
+        factory.initializeBean(instance, validatorClass.getSimpleName());
+        return instance;
+    }
 }
+

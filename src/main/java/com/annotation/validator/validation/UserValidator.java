@@ -16,8 +16,8 @@ public class UserValidator {
         return dto.getEmail() != null && dto.getEmail().matches("^[\\w.-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}$");
     }
 
-    public boolean isErrEmail(UserDto dto) {
-        return dto.getEmail() != null && !dto.getEmail().equalsIgnoreCase("error@example.com");
+    public boolean isErrEmail(String email) {
+        return email != null && !email.equalsIgnoreCase("error@example.com");
     }
 
     public boolean isErrorPassword(UserDto dto) {
